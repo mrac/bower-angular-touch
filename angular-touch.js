@@ -2,6 +2,12 @@
  * @license AngularJS v1.3.16-build.99+sha.bbc5fdd
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
+ *
+ * There's a bug in the module: https://github.com/angular/angular.js/issues/2548
+ * It has been fixed by: https://github.com/glyptodon/guacamole-client/commit/ecf62ffbb7d205c9f1221f06765cfd081224f0a5
+ * The fix is marked here by:
+ * fix-start, fix-end, fix-remove-start, fix-remove-end
+ *
  */
 (function(window, angular, undefined) {'use strict';
 
@@ -67,12 +73,24 @@ ngTouch.factory('$swipe', [function() {
   };
 
   function getCoordinates(event) {
-    var touches = event.touches && event.touches.length ? event.touches : [event];
-    var e = (event.changedTouches && event.changedTouches[0]) ||
-        (event.originalEvent && event.originalEvent.changedTouches &&
-            event.originalEvent.changedTouches[0]) ||
-        touches[0].originalEvent || touches[0];
+    // fix-start
+    // Unwrap event if wrapped by jQuery
+    if(event.originalEvent) {
+        event = event.originalEvent;
+    }
+    // fix-end
 
+    var touches = event.touches && event.touches.length ? event.touches : [event];
+
+    // fix-remove-start
+//    var e = (event.changedTouches && event.changedTouches[0]) ||
+//        (event.originalEvent && event.originalEvent.changedTouches &&
+//            event.originalEvent.changedTouches[0]) ||
+//        touches[0].originalEvent || touches[0];
+    // fix-remove-end
+    // fix-start
+    var e = (event.changedTouches && event.changedTouches[0]) || touches[0];
+    // fix-end
     return {
       x: e.clientX,
       y: e.clientY
@@ -316,6 +334,12 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
       return; // Too old.
     }
 
+    // fix-start
+    // Unwrap event if wrapped by jQuery
+    if(event.originalEvent) {
+        event = event.originalEvent;
+    }
+    // fix-end
     var touches = event.touches && event.touches.length ? event.touches : [event];
     var x = touches[0].clientX;
     var y = touches[0].clientY;
@@ -358,6 +382,12 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
   // Global touchstart handler that creates an allowable region for a click event.
   // This allowable region can be removed by preventGhostClick if we want to bust it.
   function onTouchStart(event) {
+    // fix-start
+    // Unwrap event if wrapped by jQuery
+    if(event.originalEvent) {
+        event = event.originalEvent;
+    }
+    // fix-end
     var touches = event.touches && event.touches.length ? event.touches : [event];
     var x = touches[0].clientX;
     var y = touches[0].clientY;
@@ -404,6 +434,12 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
 
     element.on('touchstart', function(event) {
       tapping = true;
+      //fix-start
+      // Unwrap event if wrapped by jQuery
+      if(event.originalEvent) {
+        event = event.originalEvent;
+      }
+      //fix-end
       tapElement = event.target ? event.target : event.srcElement; // IE uses srcElement.
       // Hack for Safari, which can target text nodes instead of containers.
       if (tapElement.nodeType == 3) {
@@ -430,6 +466,13 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
 
     element.on('touchend', function(event) {
       var diff = Date.now() - startTime;
+
+      // fix-start
+      // Unwrap event if wrapped by jQuery
+      if(event.originalEvent) {
+        event = event.originalEvent;
+      }
+      // fix-end
 
       var touches = (event.changedTouches && event.changedTouches.length) ? event.changedTouches :
           ((event.touches && event.touches.length) ? event.touches : [event]);
